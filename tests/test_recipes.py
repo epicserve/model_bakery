@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import pytest
 from django.utils.timezone import now
+from faker import Faker
 
 from model_bakery import baker
 from model_bakery.exceptions import InvalidQuantityException, RecipeIteratorEmpty
@@ -37,6 +38,8 @@ recipe_attrs = {
 person_recipe = Recipe(Person, **recipe_attrs)
 user_recipe = Recipe(User)
 lonely_person_recipe = Recipe(LonelyPerson)
+
+faker = Faker()
 
 
 def test_import_seq_from_recipe():
@@ -644,3 +647,12 @@ class TestIterators:
             DummyBlankFieldsModel, blank_text_field="not an iterator, so don't iterate!"
         )
         assert r.make().blank_text_field == "not an iterator, so don't iterate!"
+
+
+@pytest.mark.django_db
+class TestRecipeWithFakerSeeding:
+    def test_recipe_with_faker_seeding(self):
+        fake_user_recipe = Recipe(User, username=faker.user_name)
+        faker.seed_instance(10)
+        user = fake_user_recipe.make()
+        assert user.username == "pattersonbelinda"
